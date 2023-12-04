@@ -1,44 +1,25 @@
 #lang python
-import collections, re
-example_fname = 'input/example4.txt'
-input_fname = 'input/input4.txt'
+import collections
+file = 'input/bigboy.txt'
+hits = [len(set(line[0]).intersection(line[1])) \
+		for line in [[i.split() for i in line.split(": ")[1].split('|')] \
+		for line in open(file).readlines()]]
 
-USE_EXAMPLE = False
+silver, gold = 0, 0
+cardsleft = [1 for i in range(len(hits) + 1)]
 
-file = example_fname if USE_EXAMPLE else input_fname
-f = [line.strip() for line in open(file).readlines()]
-total = 0
-for line in f:
-	line = line.split(": ")[1].split('|')
-	card = [int(i) for i in line[0].strip().split(' ') if i != '']
-	card2 = [int(i) for i in line[1].strip().split(' ') if i != '']
+for row, hit in enumerate(hits, 1):
+	# silver:
 	answer = 0
-	for i in card:
-		if i in card2:
-			if answer == 0:
-				answer = 1
-			else:
-				answer *= 2
+	for i in range(hit):
+		answer = answer*2 if answer else 1
 
-	total += answer
-print("part1: ", total)
+	silver += answer
 
-cardsleft = collections.defaultdict(int)
-for i in range(1, len(f)+1):
-	cardsleft[i] = 1
-grand_total = 0
+	# gold:
+	gold += cardsleft[row]
+	for i in range(row+1, row+hit+1):
+		cardsleft[i] += cardsleft[row]
 
-for row, line in enumerate(f):
-	row += 1
-	line = line.split(": ")[1].split('|')
-	card = [int(i) for i in line[0].strip().split(' ') if i != '']
-	card2 = [int(i) for i in line[1].strip().split(' ') if i != '']
-	hits = 0
-	for i in card:
-		if i in card2:
-			hits += 1
-	for copies in range(cardsleft[row]):
-		for i in range(row+1, row+hits+1):
-			cardsleft[i] += 1
-
-print("part2: ", sum(cardsleft.values()))
+print("silver:", silver)
+print("gold:", gold)
